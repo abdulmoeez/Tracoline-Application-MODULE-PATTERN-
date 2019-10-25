@@ -9,6 +9,7 @@ UICtrl = (function(){
         btnEdit: '.btnEdit',
         btnDelete: '.btnDelete',
         btnBack: '.btnBack',
+        btnClearAll: '.clearAll',
         mealName: '#mealName',
         mealCalories: '#mealCalories',
         totalCalories: '#totalCalories',
@@ -104,6 +105,18 @@ UICtrl = (function(){
                     this.intialState();
                 }
             })
+        },
+        deleteItem: function(id){
+            const itemId = `#item-${id}`;
+            document.querySelector(itemId).remove();
+            this.intialState();
+        },
+        clearAll: function(){
+            let listItems = document.querySelectorAll(UISelectors.listItem);
+            listItems = Array.from(listItems);
+            listItems.forEach((listItem) =>{
+                listItem.remove();
+            })
         }
     }   
 })()
@@ -179,8 +192,20 @@ itemCtrl = (function(){
             })
             return found;
         },
+        deleteItem: function(id){
+            data.items.forEach((item)=>{
+                if(item.id === id){
+                    const index = data.items.indexOf(item);
+                    data.items.splice(index,1);
+                }
+            })
+            UICtrl.deleteItem(id);
+        },
+        clearAll: function(){
+            data.items = [];
+        },
         logData: function(){
-            return data;
+        return data;
         }
         
     }
@@ -197,8 +222,11 @@ const app = (function(itemCtrl, UICtrl){
         // calling update edit state
         document.querySelector(UISelectors.btnEdit).addEventListener("click", itemUpdateSubmit);
          // calling back button
-         document.querySelector(UISelectors.btnBack).addEventListener("click", intialState);
-       
+         document.querySelector(UISelectors.btnBack).addEventListener("click", UICtrl.intialState);
+         // calling delete button
+         document.querySelector(UISelectors.btnDelete).addEventListener("click", deleteItem);
+         // calling the clear all button
+         document.querySelector(UISelectors.btnClearAll).addEventListener("click", clearAll);
     }
   
     const itemAddSubmit = function(e){
@@ -236,8 +264,22 @@ const app = (function(itemCtrl, UICtrl){
         UICtrl.updateTotalCalories(totalCalories);
         e.preventDefault();
     }
-    const intialState = function(){
+    const deleteItem = function(e){
+        const item = itemCtrl.getItem();
+        itemCtrl.deleteItem(item.id);
+        // updating total Calories
+        const totalCalories = itemCtrl.totalCalories();
+        UICtrl.updateTotalCalories(totalCalories);
+        e.preventDefault();
+    }
+    const clearAll = function(e){
+        itemCtrl.clearAll();
+        UICtrl.clearAll();
+        // updating total Calories
+        const totalCalories = itemCtrl.totalCalories();
+        UICtrl.updateTotalCalories(totalCalories);
         UICtrl.intialState();
+        e.preventDefault();
     }
     return{
         init: function(){
